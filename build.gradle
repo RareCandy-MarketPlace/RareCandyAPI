@@ -1,95 +1,90 @@
 plugins {
+    id 'idea'
     id 'java-library'
     id 'maven-publish'
-    id 'net.neoforged.moddev' version '2.0.140'
+    id 'net.neoforged.moddev' version '2.0.78'
 }
 
-group = "com.rarecandy.rarecandyapi"
-version = "1.1.0"
+group = mod_group_id
+version = mod_version
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(21)
 
 neoForge {
-    version = "21.1.65"
-
-    runs {
-        client {
-            client()
-            systemProperty 'neoforge.enabledGameTestNamespaces', "rarecandyapi"
-        }
-        server {
-            server()
-            programArgument '--nogui'
-            systemProperty 'neoforge.enabledGameTestNamespaces', "rarecandyapi"
-        }
-    }
-
-    mods {
-        rarecandyapi {
-            sourceSet(sourceSets.main)
-        }
-    }
+    version = project.neo_version
 }
 
 repositories {
     mavenLocal()
     mavenCentral()
+    ivy {
+        setUrl('https://download.nodecdn.net/containers/reforged/universal/release')
 
-    maven {
-        url = "https://maven.parchmentmc.org"
-    }
-
-    maven {
-        name = "CurseMaven"
-        url = "https://cursemaven.com"
-        content {
-            includeGroup "curse.maven"
+        metadataSources {
+            artifact()
+            gradleMetadata()
+        }
+        patternLayout {
+            artifact('[artifact].[ext]')
         }
     }
-
     maven {
-        name = "Spigot"
         url = "https://hub.spigotmc.org/nexus/content/repositories/snapshots/"
     }
-
     maven {
-        name = "PlaceholderAPI"
         url = "https://repo.extendedclip.com/releases/"
     }
 }
 
 dependencies {
+    implementation("pixelmon:Pixelmon-${minecraft_version}-${pixelmon_version}-universal:${pixelmon_version}")
+    interfaceInjectionData("pixelmon:Pixelmon-${minecraft_version}-${pixelmon_version}-universal-interfaceinjection:${pixelmon_version}@json")
+
     compileOnly "org.spigotmc:spigot-api:1.21.1-R0.1-SNAPSHOT"
     compileOnly "me.clip:placeholderapi:2.11.6"
     compileOnly 'com.zaxxer:HikariCP:5.1.0'
     compileOnly 'mysql:mysql-connector-java:8.0.33'
-    compileOnly "curse.maven:pixelmon-389487:8042508"
     compileOnly fileTree(dir: 'libs', include: ['*.jar'])
-}
-
-tasks.withType(JavaCompile).configureEach {
-    options.encoding = 'UTF-8'
 }
 
 base {
     archivesName = 'RareCandyAPI-NeoForge'
 }
 
-tasks.named('processResources', ProcessResources).configure {
+tasks.withType(Jar).configureEach {
+    archiveFileName = "${mod_name}-${mod_platform}-${minecraft_version}-${mod_version}.jar"
+}
+
+tasks.withType(ProcessResources).configureEach {
     var replaceProperties = [
-            minecraft_version: "1.21.1", minecraft_version_range: "[1.21.1,1.22)",
-            neo_version      : "21.1.65", neo_version_range: "[21.1.65,)",
-            mod_id           : "rarecandyapi",
-            mod_name         : "RareCandy API",
-            mod_license      : "All Rights Reserved",
-            mod_version      : version,
-            mod_authors      : "Dhanraj",
-            mod_description  : "Core Arclight API for RareCandy custom mods."
+            minecraft_version      : minecraft_version,
+            minecraft_version_range: minecraft_version_range,
+            neo_version            : neo_version,
+            neo_version_range      : neo_version_range,
+            loader_version_range   : loader_version_range,
+            mod_id                 : mod_id,
+            mod_name               : mod_name,
+            mod_license            : mod_license,
+            mod_version            : mod_version,
+            mod_authors            : mod_authors,
+            mod_description        : mod_description,
+            pixelmon_version       : pixelmon_version
     ]
     inputs.properties replaceProperties
 
     filesMatching(['META-INF/neoforge.mods.toml']) {
-        expand replaceProperties + [project: project]
+        expand replaceProperties
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}
+
+idea {
+    module {
+        downloadSources = true
+        downloadJavadoc = true
     }
 }
 
