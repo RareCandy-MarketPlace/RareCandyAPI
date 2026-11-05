@@ -21,12 +21,17 @@ import com.pixelmonmod.pixelmon.battles.controller.participants.BattleParticipan
 import com.rarecandy.rarecandyapi.data.PlayerData;
 import com.rarecandy.rarecandyapi.data.PlayerDataManager;
 import com.rarecandy.rarecandyapi.event.RareCandyCaptureEvent;
+import com.rarecandy.rarecandyapi.event.RareCandyDefeatEvent;
+import com.rarecandy.rarecandyapi.event.RareCandyNPCDefeatEvent;
 import com.rarecandy.rarecandyapi.event.RareCandyRaidCaptureEvent;
+import com.rarecandy.rarecandyapi.event.RareCandyRaidWinEvent;
 import com.rarecandy.rarecandyapi.event.RareCandyTradeEvent;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.common.NeoForge;
+
+import java.util.UUID;
 
 public class PixelmonEventInterceptor {
 
@@ -66,12 +71,21 @@ public class PixelmonEventInterceptor {
         boolean isTrainer = false;
         boolean isWild = false;
         boolean isBoss = false;
+        String opponentName = "Unknown";
+        UUID opponentUUID = null;
 
         for (BattleParticipant opponent : event.getResults().keySet()) {
-            String participantName = opponent.getClass().getSimpleName();
-            if (participantName.contains("Trainer")) isTrainer = true;
-            if (participantName.contains("Wild")) isWild = true;
-            if (participantName.contains("Boss") || participantName.contains("Raid")) isBoss = true;
+            if (opponent.isTrainer() || opponent.getClass().getSimpleName().contains("Trainer")) {
+                isTrainer = true;
+                opponentName = opponent.getName().getString();
+                opponentUUID = opponent.getUniqueId();
+            } else if (opponent.isWild() || opponent.getClass().getSimpleName().contains("Wild")) {
+                isWild = true;
+                opponentName = opponent.getName().getString();
+            } else if (opponent.isRaid() || opponent.getClass().getSimpleName().contains("Boss") || opponent.getClass().getSimpleName().contains("Raid")) {
+                isBoss = true;
+                opponentName = opponent.getName().getString();
+            }
         }
 
         for (Player p : event.getPlayers()) {
@@ -81,10 +95,14 @@ public class PixelmonEventInterceptor {
                     PlayerData data = PlayerDataManager.get(player.getUUID());
                     if (isBoss) {
                         data.incrementBossDefeats();
+                        NeoForge.EVENT_BUS.post(new RareCandyDefeatEvent(player, opponentName, true));
                     } else if (isTrainer) {
                         data.incrementNpcWins();
+                        NeoForge.EVENT_BUS.post(new RareCandyDefeatEvent(player, opponentName, false));
+                        NeoForge.EVENT_BUS.post(new RareCandyNPCDefeatEvent(player, opponentName, opponentUUID));
                     } else if (isWild) {
                         data.incrementWildDefeats();
+                        NeoForge.EVENT_BUS.post(new RareCandyDefeatEvent(player, opponentName, false));
                     }
                 }
             }
@@ -122,6 +140,7 @@ public class PixelmonEventInterceptor {
             data.incrementRaidWins();
 
             NeoForge.EVENT_BUS.post(new RareCandyRaidCaptureEvent(player, pokemonName, isShiny));
+            NeoForge.EVENT_BUS.post(new RareCandyRaidWinEvent(player, pokemonName, 5));
         }
     }
 

@@ -1,15 +1,18 @@
 package com.rarecandy.rarecandyapi.registry;
 
+import com.PixelmonRaid.RaidSaveData;
+import com.PixelmonRaid.RaidSession;
+import com.PixelmonRaid.RaidSpawner;
+import com.gym.gymsystem.data.DatabaseManager.GymLeaderData;
 import com.pixelmonmod.pixelmon.api.pokemon.Pokemon;
 import com.pixelmonmod.pixelmon.api.storage.PlayerPartyStorage;
 import com.pixelmonmod.pixelmon.api.storage.StorageProxy;
 import com.rarecandy.rarecandyapi.bridge.GymBridge;
 import com.rarecandy.rarecandyapi.data.PlayerData;
 import com.rarecandy.rarecandyapi.data.PlayerDataManager;
-import com.PixelmonRaid.RaidSaveData;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import org.bukkit.OfflinePlayer;
 import org.jetbrains.annotations.NotNull;
@@ -30,7 +33,7 @@ public class RareCandyExpansion extends PlaceholderExpansion {
     public @NotNull String getAuthor() { return "CautionLol"; }
 
     @Override
-    public @NotNull String getVersion() { return "1.0.0"; }
+    public @NotNull String getVersion() { return "1.2.0"; }
 
     @Override
     public boolean persist() { return true; }
@@ -38,10 +41,6 @@ public class RareCandyExpansion extends PlaceholderExpansion {
     @Override
     public boolean canRegister() { return true; }
 
-    /**
-     * Helper method to fetch async data safely.
-     * Returns "Loading..." instantly, and updates the cache in the background when the DB responds.
-     */
     private String getOrFetchAsync(UUID uuid, String param, CompletableFuture<?> future) {
         String cacheKey = uuid.toString() + "_" + param;
         if (ASYNC_CACHE.containsKey(cacheKey)) {
@@ -64,7 +63,10 @@ public class RareCandyExpansion extends PlaceholderExpansion {
         if (player == null) return "";
 
         PlayerData data = PlayerDataManager.get(player.getUniqueId());
-        ServerPlayer serverPlayer = ServerLifecycleHooks.getCurrentServer().getPlayerList().getPlayer(player.getUniqueId());
+        ServerPlayer serverPlayer = null;
+        if (ServerLifecycleHooks.getCurrentServer() != null) {
+            serverPlayer = ServerLifecycleHooks.getCurrentServer().getPlayerList().getPlayer(player.getUniqueId());
+        }
         String lowerParam = params.toLowerCase();
 
         if (lowerParam.equals("gymsystem_gyms_beaten_total")) {
@@ -87,15 +89,70 @@ public class RareCandyExpansion extends PlaceholderExpansion {
 
         if (lowerParam.startsWith("gymsystem_champion_streak_")) {
             String gymId = lowerParam.replace("gymsystem_champion_streak_", "");
-            com.gym.gymsystem.data.DatabaseManager.GymLeaderData leader = GymBridge.getChampionData(gymId);
+            GymLeaderData leader = GymBridge.getChampionData(gymId);
             if (leader != null && leader.playerUUID().equals(player.getUniqueId().toString())) {
                 return String.valueOf(leader.defenseStreak());
             }
             return "0";
         }
 
+        if (lowerParam.startsWith("gymsystem_champion_name_")) {
+            String gymId = lowerParam.replace("gymsystem_champion_name_", "");
+            return GymBridge.getChampionName(gymId);
+        }
+
+        if (lowerParam.startsWith("gymsystem_champion_uuid_")) {
+            String gymId = lowerParam.replace("gymsystem_champion_uuid_", "");
+            UUID uuid = GymBridge.getChampionUUID(gymId);
+            return uuid != null ? uuid.toString() : "None";
+        }
+
+        if (lowerParam.equals("gymsystem_player_champion_gym")) {
+            String gym = GymBridge.getGymWherePlayerIsChampion(player.getUniqueId());
+            return gym != null ? gym : "None";
+        }
+
+        if (lowerParam.equals("gymsystem_is_in_battle")) {
+            return String.valueOf(GymBridge.isChallengerInBattle(player.getUniqueId()));
+        }
+
+        if (lowerParam.equals("gymsystem_active_gym")) {
+            String gym = GymBridge.getPlayerActiveGymId(player.getUniqueId());
+            return gym != null ? gym : "None";
+        }
+
+        if (lowerParam.startsWith("gymsystem_cooldown_")) {
+            String gymId = lowerParam.replace("gymsystem_cooldown_", "");
+            return getOrFetchAsync(player.getUniqueId(), lowerParam, GymBridge.getPlayerCooldownMinutes(player.getUniqueId(), gymId));
+        }
+
+        if (lowerParam.startsWith("gymsystem_elo_")) {
+            String format = lowerParam.replace("gymsystem_elo_", "");
+            return getOrFetchAsync(player.getUniqueId(), lowerParam, GymBridge.fetchPlayerEloValue(player.getUniqueId(), format));
+        }
+
+        if (lowerParam.startsWith("gymsystem_wins_")) {
+            String gymId = lowerParam.replace("gymsystem_wins_", "");
+            return getOrFetchAsync(player.getUniqueId(), lowerParam, GymBridge.getPlayerWins(player.getUniqueId(), gymId));
+        }
+
+        if (lowerParam.startsWith("gymsystem_losses_")) {
+            String gymId = lowerParam.replace("gymsystem_losses_", "");
+            return getOrFetchAsync(player.getUniqueId(), lowerParam, GymBridge.getPlayerLosses(player.getUniqueId(), gymId));
+        }
+
+        if (lowerParam.startsWith("gymsystem_attempts_")) {
+            String gymId = lowerParam.replace("gymsystem_attempts_", "");
+            return getOrFetchAsync(player.getUniqueId(), lowerParam, GymBridge.getPlayerAttempts(player.getUniqueId(), gymId));
+        }
+
         if (lowerParam.equals("gymsystem_bt_active_floor")) {
             return GymBridge.getActiveBTFloor(player.getUniqueId());
+        }
+
+        if (lowerParam.startsWith("gymsystem_bt_attempts_")) {
+            String floorId = lowerParam.replace("gymsystem_bt_attempts_", "");
+            return String.valueOf(GymBridge.getFloorAttempts(player.getUniqueId(), floorId));
         }
 
         if (data == null) {
@@ -125,6 +182,42 @@ public class RareCandyExpansion extends PlaceholderExpansion {
             case "shrines_activated": return String.valueOf(data.getShrinesActivated());
             case "dex_count": return "0";
 
+            case "raidboss_active":
+                if (serverPlayer != null) {
+                    RaidSession session = RaidSpawner.getSessionSafe((ServerLevel) serverPlayer.level());
+                    return String.valueOf(session != null && session.isBattleActive());
+                }
+                return "false";
+            case "raidboss_current_name":
+                if (serverPlayer != null) {
+                    RaidSession session = RaidSpawner.getSessionSafe((ServerLevel) serverPlayer.level());
+                    return session != null && session.getCurrentBossName() != null ? session.getCurrentBossName() : "None";
+                }
+                return "None";
+            case "raidboss_current_hp":
+                if (serverPlayer != null) {
+                    RaidSession session = RaidSpawner.getSessionSafe((ServerLevel) serverPlayer.level());
+                    return String.valueOf(session != null ? session.getTotalRaidHP() : 0);
+                }
+                return "0";
+            case "raidboss_max_hp":
+                if (serverPlayer != null) {
+                    RaidSession session = RaidSpawner.getSessionSafe((ServerLevel) serverPlayer.level());
+                    return String.valueOf(session != null ? session.getMaxRaidHP() : 0);
+                }
+                return "0";
+            case "raidboss_player_damage":
+                if (serverPlayer != null) {
+                    RaidSession session = RaidSpawner.getSessionSafe((ServerLevel) serverPlayer.level());
+                    return String.valueOf(session != null ? session.getDamageTracker().getDamage(player.getUniqueId()) : 0);
+                }
+                return "0";
+            case "raidboss_player_rank":
+                if (serverPlayer != null) {
+                    RaidSession session = RaidSpawner.getSessionSafe((ServerLevel) serverPlayer.level());
+                    return String.valueOf(session != null ? session.getDamageTracker().getRank(player.getUniqueId()) : -1);
+                }
+                return "-1";
             case "raidboss_fought":
                 if (serverPlayer != null) return String.valueOf(RaidSaveData.get((ServerLevel) serverPlayer.level()).getPlayerStats(player.getUniqueId()).raidsJoined);
                 return "0";
