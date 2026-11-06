@@ -5,7 +5,9 @@ import com.PixelmonRaid.RaidSession;
 import com.PixelmonRaid.RaidSpawner;
 import com.rarecandy.rarecandyapi.bridge.GymBridge;
 import com.rarecandy.rarecandyapi.database.DatabaseManager;
+import com.rarecandy.rarecandyapi.listener.CommandListener;
 import com.rarecandy.rarecandyapi.listener.PixelmonEventInterceptor;
+import com.rarecandy.rarecandyapi.listener.PlayerLifecycleListener;
 import com.rarecandy.rarecandyapi.registry.RareCandyExpansion;
 import me.clip.placeholderapi.PlaceholderAPI;
 import net.minecraft.server.level.ServerLevel;
@@ -29,9 +31,12 @@ public class RareCandyPlugin extends JavaPlugin {
 
         try {
             PixelmonEventInterceptor.register();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        } catch (Throwable ignored) {}
+
+        try {
+            CommandListener.register();
+            PlayerLifecycleListener.register();
+        } catch (Throwable ignored) {}
     }
 
     @Override

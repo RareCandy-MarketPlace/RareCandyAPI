@@ -28,3 +28,4 @@ public class RareCandyNPCDefeatEvent extends Event {
         return npcUUID;
     }
 }
+
