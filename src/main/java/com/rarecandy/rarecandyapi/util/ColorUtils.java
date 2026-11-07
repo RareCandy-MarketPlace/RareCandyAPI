@@ -14,6 +14,10 @@ public class ColorUtils {
     private static final Pattern HEX_PATTERN = Pattern.compile("<#([A-Fa-f0-9])([A-Fa-f0-9])([A-Fa-f0-9])([A-Fa-f0-9])([A-Fa-f0-9])([A-Fa-f0-9])>");
     private static final Pattern GRADIENT_PATTERN = Pattern.compile("</?gradient(:#[A-Fa-f0-9]{6})*>");
 
+    public static Component format(String text) {
+        return format(text, null);
+    }
+
     public static Component format(String text, ServerPlayer player) {
         if (text == null || text.isEmpty()) {
             return Component.empty();

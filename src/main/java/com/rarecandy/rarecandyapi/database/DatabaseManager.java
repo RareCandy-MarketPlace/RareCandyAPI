@@ -102,8 +102,7 @@ public class DatabaseManager {
                     if (!flushed.isEmpty()) {
                         plugin.getLogger().info("Successfully flushed " + flushed.size() + " pending saves to the database.");
                     }
-                } catch (SQLException e) {
-                    // Database remains offline, wait for the next task cycle
+                } catch (SQLException ignored) {
                 }
             }
         }.runTaskTimerAsynchronously(plugin, 1200L, 1200L);

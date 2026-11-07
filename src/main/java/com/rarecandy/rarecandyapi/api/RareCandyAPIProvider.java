@@ -14,12 +14,23 @@ import com.pixelmonmod.pixelmon.api.storage.StorageProxy;
 import com.pixelmonmod.pixelmon.entities.npcs.NPC;
 import com.rarecandy.rarecandyapi.RareCandyPlugin;
 import com.rarecandy.rarecandyapi.bridge.GymBridge;
+import com.rarecandy.rarecandyapi.cooldown.CooldownManager;
 import com.rarecandy.rarecandyapi.data.PlayerData;
 import com.rarecandy.rarecandyapi.data.PlayerDataManager;
+import com.rarecandy.rarecandyapi.gui.PageableGui;
+import com.rarecandy.rarecandyapi.gui.RareCandyGui;
+import com.rarecandy.rarecandyapi.item.ItemBuilder;
+import com.rarecandy.rarecandyapi.pokemon.PokemonGiveResult;
+import com.rarecandy.rarecandyapi.pokemon.PokemonHelper;
+import com.rarecandy.rarecandyapi.scheduler.CancellableTask;
+import com.rarecandy.rarecandyapi.scheduler.Scheduler;
+import com.rarecandy.rarecandyapi.text.MessageUtil;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.ItemLike;
 
 import java.math.BigDecimal;
 import java.util.Collection;
@@ -413,5 +424,97 @@ public class RareCandyAPIProvider {
 
     public static String parsePlaceholders(ServerPlayer player, String text) {
         return RareCandyPlugin.parseAllPlaceholders(player, text);
+    }
+
+    public static RareCandyGui createGui(int rows, String title) {
+        return RareCandyGui.of(rows, title);
+    }
+
+    public static RareCandyGui createGui(int rows, Component title) {
+        return RareCandyGui.of(rows, title);
+    }
+
+    public static <T> PageableGui<T> createPageableGui(int rows, String title) {
+        return PageableGui.create(rows, title);
+    }
+
+    public static <T> PageableGui<T> createPageableGui(int rows, Component title) {
+        return PageableGui.create(rows, title);
+    }
+
+    public static ItemBuilder buildItem(ItemLike item) {
+        return ItemBuilder.of(item);
+    }
+
+    public static ItemBuilder buildItem(ItemStack stack) {
+        return ItemBuilder.of(stack);
+    }
+
+    public static <K> CooldownManager<K> createCooldownManager() {
+        return CooldownManager.create();
+    }
+
+    public static PokemonGiveResult givePokemon(ServerPlayer player, Pokemon pokemon) {
+        return PokemonHelper.givePokemon(player, pokemon);
+    }
+
+    public static Pokemon createPokemon(String spec) {
+        return PokemonHelper.createPokemon(spec);
+    }
+
+    public static void setPerfectIVs(Pokemon pokemon) {
+        PokemonHelper.setPerfectIVs(pokemon);
+    }
+
+    public static double getIVPercentage(Pokemon pokemon) {
+        return PokemonHelper.getIVPercentage(pokemon);
+    }
+
+    public static boolean isPlayerInBattle(ServerPlayer player) {
+        return PokemonHelper.isInBattle(player);
+    }
+
+    public static void healPlayerParty(ServerPlayer player) {
+        PokemonHelper.healParty(player);
+    }
+
+    public static ItemStack getPokemonPhoto(Pokemon pokemon) {
+        return PokemonHelper.getPokemonPhoto(pokemon);
+    }
+
+    public static void sendMessage(ServerPlayer player, String message) {
+        MessageUtil.send(player, message);
+    }
+
+    public static void sendActionBar(ServerPlayer player, String message) {
+        MessageUtil.sendActionBar(player, message);
+    }
+
+    public static void sendTitle(ServerPlayer player, String title, String subtitle) {
+        MessageUtil.sendTitle(player, title, subtitle);
+    }
+
+    public static void broadcast(String message) {
+        MessageUtil.broadcast(message);
+    }
+
+    public static void broadcastActionBar(String message) {
+        MessageUtil.broadcastActionBar(message);
+    }
+
+    public static CompletableFuture<Void> runAsync(Runnable runnable) {
+        return Scheduler.async(runnable);
+    }
+
+    public static void runSync(Runnable runnable) {
+        Scheduler.sync(runnable);
+    }
+
+    public static CancellableTask runSyncDelayed(Runnable runnable, long ticks) {
+        return Scheduler.syncDelayed(runnable, ticks);
+    }
+
+    public static CancellableTask runSyncRepeating(Runnable runnable, long delayTicks, long periodTicks) {
+        return Scheduler.syncRepeating(runnable, delayTicks, periodTicks);
     }
 }

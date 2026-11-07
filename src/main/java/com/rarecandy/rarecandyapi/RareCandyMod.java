@@ -3,6 +3,7 @@ package com.rarecandy.rarecandyapi;
 import com.rarecandy.rarecandyapi.listener.CommandListener;
 import com.rarecandy.rarecandyapi.listener.PixelmonEventInterceptor;
 import com.rarecandy.rarecandyapi.listener.PlayerLifecycleListener;
+import com.rarecandy.rarecandyapi.scheduler.Scheduler;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
 
@@ -14,8 +15,10 @@ public class RareCandyMod {
     public RareCandyMod(IEventBus modEventBus) {
         CommandListener.register();
         PlayerLifecycleListener.register();
+        Scheduler.init();
         try {
             PixelmonEventInterceptor.register();
         } catch (Throwable ignored) {}
     }
 }
+
