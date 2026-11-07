@@ -88,3 +88,4 @@ public class PokemonTagHelper {
         return getString(pokemon, CUSTOM_RARITY_TAG);
     }
 }
+

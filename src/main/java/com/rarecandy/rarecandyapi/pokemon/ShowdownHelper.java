@@ -15,7 +15,8 @@ import java.util.List;
 public class ShowdownHelper {
 
     public static String exportToShowdown(Pokemon pokemon) {
-        if (pokemon == null) return "";
+        if (pokemon == null)
+            return "";
         StringBuilder sb = new StringBuilder();
         sb.append(pokemon.getSpecies().getName());
         ItemStack held = pokemon.getHeldItem();
@@ -35,12 +36,18 @@ public class ShowdownHelper {
 
         EVStore evs = pokemon.getEVs();
         List<String> evParts = new ArrayList<>();
-        if (evs.getStat(BattleStatsType.HP) > 0) evParts.add(evs.getStat(BattleStatsType.HP) + " HP");
-        if (evs.getStat(BattleStatsType.ATTACK) > 0) evParts.add(evs.getStat(BattleStatsType.ATTACK) + " Atk");
-        if (evs.getStat(BattleStatsType.DEFENSE) > 0) evParts.add(evs.getStat(BattleStatsType.DEFENSE) + " Def");
-        if (evs.getStat(BattleStatsType.SPECIAL_ATTACK) > 0) evParts.add(evs.getStat(BattleStatsType.SPECIAL_ATTACK) + " SpA");
-        if (evs.getStat(BattleStatsType.SPECIAL_DEFENSE) > 0) evParts.add(evs.getStat(BattleStatsType.SPECIAL_DEFENSE) + " SpD");
-        if (evs.getStat(BattleStatsType.SPEED) > 0) evParts.add(evs.getStat(BattleStatsType.SPEED) + " Spe");
+        if (evs.getStat(BattleStatsType.HP) > 0)
+            evParts.add(evs.getStat(BattleStatsType.HP) + " HP");
+        if (evs.getStat(BattleStatsType.ATTACK) > 0)
+            evParts.add(evs.getStat(BattleStatsType.ATTACK) + " Atk");
+        if (evs.getStat(BattleStatsType.DEFENSE) > 0)
+            evParts.add(evs.getStat(BattleStatsType.DEFENSE) + " Def");
+        if (evs.getStat(BattleStatsType.SPECIAL_ATTACK) > 0)
+            evParts.add(evs.getStat(BattleStatsType.SPECIAL_ATTACK) + " SpA");
+        if (evs.getStat(BattleStatsType.SPECIAL_DEFENSE) > 0)
+            evParts.add(evs.getStat(BattleStatsType.SPECIAL_DEFENSE) + " SpD");
+        if (evs.getStat(BattleStatsType.SPEED) > 0)
+            evParts.add(evs.getStat(BattleStatsType.SPEED) + " Spe");
         if (!evParts.isEmpty()) {
             sb.append("EVs: ").append(String.join(" / ", evParts)).append("\n");
         }
@@ -51,12 +58,18 @@ public class ShowdownHelper {
 
         IVStore ivs = pokemon.getIVs();
         List<String> ivParts = new ArrayList<>();
-        if (ivs.getStat(BattleStatsType.HP) != 31) ivParts.add(ivs.getStat(BattleStatsType.HP) + " HP");
-        if (ivs.getStat(BattleStatsType.ATTACK) != 31) ivParts.add(ivs.getStat(BattleStatsType.ATTACK) + " Atk");
-        if (ivs.getStat(BattleStatsType.DEFENSE) != 31) ivParts.add(ivs.getStat(BattleStatsType.DEFENSE) + " Def");
-        if (ivs.getStat(BattleStatsType.SPECIAL_ATTACK) != 31) ivParts.add(ivs.getStat(BattleStatsType.SPECIAL_ATTACK) + " SpA");
-        if (ivs.getStat(BattleStatsType.SPECIAL_DEFENSE) != 31) ivParts.add(ivs.getStat(BattleStatsType.SPECIAL_DEFENSE) + " SpD");
-        if (ivs.getStat(BattleStatsType.SPEED) != 31) ivParts.add(ivs.getStat(BattleStatsType.SPEED) + " Spe");
+        if (ivs.getStat(BattleStatsType.HP) != 31)
+            ivParts.add(ivs.getStat(BattleStatsType.HP) + " HP");
+        if (ivs.getStat(BattleStatsType.ATTACK) != 31)
+            ivParts.add(ivs.getStat(BattleStatsType.ATTACK) + " Atk");
+        if (ivs.getStat(BattleStatsType.DEFENSE) != 31)
+            ivParts.add(ivs.getStat(BattleStatsType.DEFENSE) + " Def");
+        if (ivs.getStat(BattleStatsType.SPECIAL_ATTACK) != 31)
+            ivParts.add(ivs.getStat(BattleStatsType.SPECIAL_ATTACK) + " SpA");
+        if (ivs.getStat(BattleStatsType.SPECIAL_DEFENSE) != 31)
+            ivParts.add(ivs.getStat(BattleStatsType.SPECIAL_DEFENSE) + " SpD");
+        if (ivs.getStat(BattleStatsType.SPEED) != 31)
+            ivParts.add(ivs.getStat(BattleStatsType.SPEED) + " Spe");
         if (!ivParts.isEmpty()) {
             sb.append("IVs: ").append(String.join(" / ", ivParts)).append("\n");
         }
@@ -71,9 +84,11 @@ public class ShowdownHelper {
     }
 
     public static Pokemon importFromShowdown(String showdownText) {
-        if (showdownText == null || showdownText.isBlank()) return null;
+        if (showdownText == null || showdownText.isBlank())
+            return null;
         String[] lines = showdownText.split("\\r?\\n");
-        if (lines.length == 0) return null;
+        if (lines.length == 0)
+            return null;
 
         String header = lines[0].trim();
         String speciesName = header;
@@ -85,26 +100,30 @@ public class ShowdownHelper {
         }
 
         Pokemon pokemon = PokemonHelper.createPokemon(speciesName);
-        if (pokemon == null) return null;
+        if (pokemon == null)
+            return null;
 
         List<String> moves = new ArrayList<>();
 
         for (int i = 1; i < lines.length; i++) {
             String line = lines[i].trim();
-            if (line.isEmpty()) continue;
+            if (line.isEmpty())
+                continue;
 
             if (line.startsWith("Ability:")) {
                 AbilityRegistry.getAbility(line.substring(8).trim()).ifPresent(pokemon::setAbility);
             } else if (line.startsWith("Level:")) {
                 try {
                     pokemon.setLevel(Integer.parseInt(line.substring(6).trim()));
-                } catch (Throwable ignored) {}
+                } catch (Throwable ignored) {
+                }
             } else if (line.startsWith("Shiny:")) {
                 pokemon.setShiny(line.substring(6).trim().equalsIgnoreCase("Yes"));
             } else if (line.endsWith("Nature")) {
                 String natureStr = line.replace("Nature", "").trim();
                 Nature nat = Nature.natureFromString(natureStr);
-                if (nat != null) pokemon.setNature(nat);
+                if (nat != null)
+                    pokemon.setNature(nat);
             } else if (line.startsWith("EVs:")) {
                 parseStatLine(line.substring(4).trim(), pokemon.getEVs());
             } else if (line.startsWith("IVs:")) {
@@ -130,8 +149,10 @@ public class ShowdownHelper {
                 try {
                     int val = Integer.parseInt(tokens[0].trim());
                     BattleStatsType type = getStatType(tokens[1].trim());
-                    if (type != null) evs.setStat(type, val);
-                } catch (Throwable ignored) {}
+                    if (type != null)
+                        evs.setStat(type, val);
+                } catch (Throwable ignored) {
+                }
             }
         }
     }
@@ -145,8 +166,10 @@ public class ShowdownHelper {
                 try {
                     int val = Integer.parseInt(tokens[0].trim());
                     BattleStatsType type = getStatType(tokens[1].trim());
-                    if (type != null) ivs.setStat(type, val);
-                } catch (Throwable ignored) {}
+                    if (type != null)
+                        ivs.setStat(type, val);
+                } catch (Throwable ignored) {
+                }
             }
         }
     }
