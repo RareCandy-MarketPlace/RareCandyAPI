@@ -12,18 +12,26 @@ import com.pixelmonmod.pixelmon.api.storage.PCStorage;
 import com.pixelmonmod.pixelmon.api.storage.PlayerPartyStorage;
 import com.pixelmonmod.pixelmon.api.storage.StorageProxy;
 import com.pixelmonmod.pixelmon.entities.npcs.NPC;
+import com.pixelmonmod.pixelmon.battles.controller.BattleController;
 import com.rarecandy.rarecandyapi.RareCandyPlugin;
+import com.rarecandy.rarecandyapi.battle.BattleHelper;
+import com.rarecandy.rarecandyapi.breeding.EggHelper;
 import com.rarecandy.rarecandyapi.bridge.GymBridge;
 import com.rarecandy.rarecandyapi.cooldown.CooldownManager;
 import com.rarecandy.rarecandyapi.data.PlayerData;
 import com.rarecandy.rarecandyapi.data.PlayerDataManager;
+import com.rarecandy.rarecandyapi.event.EventManager;
 import com.rarecandy.rarecandyapi.gui.PageableGui;
 import com.rarecandy.rarecandyapi.gui.RareCandyGui;
 import com.rarecandy.rarecandyapi.item.ItemBuilder;
+import com.rarecandy.rarecandyapi.pokedex.DexHelper;
 import com.rarecandy.rarecandyapi.pokemon.PokemonGiveResult;
 import com.rarecandy.rarecandyapi.pokemon.PokemonHelper;
+import com.rarecandy.rarecandyapi.pokemon.PokemonTagHelper;
+import com.rarecandy.rarecandyapi.pokemon.ShowdownHelper;
 import com.rarecandy.rarecandyapi.scheduler.CancellableTask;
 import com.rarecandy.rarecandyapi.scheduler.Scheduler;
+import com.rarecandy.rarecandyapi.storage.StorageHelper;
 import com.rarecandy.rarecandyapi.text.MessageUtil;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
@@ -31,12 +39,15 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ItemLike;
+import net.neoforged.bus.api.Event;
 
 import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 public class RareCandyAPIProvider {
@@ -516,5 +527,117 @@ public class RareCandyAPIProvider {
 
     public static CancellableTask runSyncRepeating(Runnable runnable, long delayTicks, long periodTicks) {
         return Scheduler.syncRepeating(runnable, delayTicks, periodTicks);
+    }
+
+    public static CompletableFuture<BattleController> startPvPBattle(ServerPlayer player1, ServerPlayer player2) {
+        return BattleHelper.startPvP(player1, player2);
+    }
+
+    public static boolean endBattle(ServerPlayer player) {
+        return BattleHelper.endBattle(player);
+    }
+
+    public static boolean forfeitBattle(ServerPlayer player) {
+        return BattleHelper.forfeit(player);
+    }
+
+    public static boolean spectateBattle(ServerPlayer spectator, ServerPlayer target) {
+        return BattleHelper.spectate(spectator, target);
+    }
+
+    public static void stopSpectatingBattle(ServerPlayer spectator) {
+        BattleHelper.stopSpectating(spectator);
+    }
+
+    public static int getPokedexCaughtCount(ServerPlayer player) {
+        return DexHelper.getCaughtCount(player);
+    }
+
+    public static int getPokedexSeenCount(ServerPlayer player) {
+        return DexHelper.getSeenCount(player);
+    }
+
+    public static double getPokedexPercentage(ServerPlayer player) {
+        return DexHelper.getCaughtPercentage(player);
+    }
+
+    public static boolean hasCaughtSpecies(ServerPlayer player, String speciesName) {
+        return DexHelper.hasCaught(player, speciesName);
+    }
+
+    public static boolean hasSeenSpecies(ServerPlayer player, String speciesName) {
+        return DexHelper.hasSeen(player, speciesName);
+    }
+
+    public static boolean isEgg(Pokemon pokemon) {
+        return EggHelper.isEgg(pokemon);
+    }
+
+    public static int getEggSteps(Pokemon pokemon) {
+        return EggHelper.getEggSteps(pokemon);
+    }
+
+    public static void setEggSteps(Pokemon pokemon, int steps) {
+        EggHelper.setEggSteps(pokemon, steps);
+    }
+
+    public static boolean hatchEgg(Pokemon pokemon) {
+        return EggHelper.hatch(pokemon);
+    }
+
+    public static Pokemon createEgg(String spec) {
+        return EggHelper.createEgg(spec);
+    }
+
+    public static String exportToShowdown(Pokemon pokemon) {
+        return ShowdownHelper.exportToShowdown(pokemon);
+    }
+
+    public static Pokemon importFromShowdown(String text) {
+        return ShowdownHelper.importFromShowdown(text);
+    }
+
+    public static List<Pokemon> getAllPlayerPokemon(ServerPlayer player) {
+        return StorageHelper.getAll(player);
+    }
+
+    public static List<Pokemon> findPlayerPokemon(ServerPlayer player, Predicate<Pokemon> filter) {
+        return StorageHelper.find(player, filter);
+    }
+
+    public static int countPlayerShinies(ServerPlayer player) {
+        return StorageHelper.countShinies(player);
+    }
+
+    public static int countPlayerLegendaries(ServerPlayer player) {
+        return StorageHelper.countLegendaries(player);
+    }
+
+    public static boolean transferPokemon(ServerPlayer from, ServerPlayer to, Pokemon pokemon) {
+        return StorageHelper.transfer(from, to, pokemon);
+    }
+
+    public static void setPokemonUntradeable(Pokemon pokemon, boolean untradeable) {
+        PokemonTagHelper.setUntradeable(pokemon, untradeable);
+    }
+
+    public static boolean isPokemonUntradeable(Pokemon pokemon) {
+        return PokemonTagHelper.isUntradeable(pokemon);
+    }
+
+    public static void setPokemonUnbreedable(Pokemon pokemon, boolean unbreedable) {
+        PokemonTagHelper.setUnbreedable(pokemon, unbreedable);
+    }
+
+    public static boolean isPokemonUnbreedable(Pokemon pokemon) {
+        return PokemonTagHelper.isUnbreedable(pokemon);
+    }
+
+    public static <T extends Event> void onEvent(Consumer<T> listener) {
+        EventManager.subscribe(listener);
+    }
+
+    public static <T extends Event> void onPixelmonEvent(Consumer<T> listener) {
+        EventManager.subscribePixelmon(listener);
     }
 }
